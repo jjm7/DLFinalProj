@@ -47,9 +47,9 @@ def write_cols():
 def create_features_for_business(business_row):
 	business_id = business_row['business_id']
 	#create static features
-	#TODO: turn categories and city into glove features
 	static_features = [business_row['latitude'],business_row['longitude'],business_row['price_range']]
 	static_features.extend(state_to_one_hot(business_row['state']))
+	#TODO: turn categories and city into glove features
 	#create dynamic features
 	dynamic_features_results = db.query(dynamic_features_sql%business_id)
 	feature_adder = Dynmamic_Features()

@@ -10,16 +10,20 @@ import data_loader
 def main(load_model=False):
 	#set parameters
 	num_units = 200
-	num_businesses = 1
-	epochs_per_business = 400
+	num_mini_batches = 100
+	nb_epoch = 1
+	batch_size = 32
+
+
 	with open('columns.csv','r') as f:
 		cols = f.readline().strip().split(',')
 	input_dim = len(cols)
 
 
 	# train_loader = data_loader.load_batch_preprocessed(mode='train', train_ratio=0.80, choice='sequential') 
-	train_loader = data_loader.load_batch_same_len(batch_size=32, choice='sequential', min_months=12)
-	
+	# train_loader = data_loader.load_batch_same_len(batch_size=batch_size, choice='sequential', min_months=min_months)
+	train_X, train_Y = data_loader.load_batch_all_in_memory(batch_size=batch_size, train_ratio=0.80, min_months=min_months)
+
 	# create and fit the LSTM network
 	if load_model:
 		model = load_model_from_file()
@@ -33,14 +37,18 @@ def main(load_model=False):
 	model.summary()
 
 	print "training model"
-	for i in xrange(num_businesses):
-		train_X, train_Y = train_loader.next()
-		print train_X.shape, train_Y.shape
-		# reshape input to be [samples, time steps, features]
-		# train_X, train_Y = reshape_inputs(train_X, train_Y)
-		model.fit(train_X, train_Y, nb_epoch=epochs_per_business, batch_size=32, verbose=2)
-		loss = model.evaluate(train_X, train_Y, verbose=0)
-		print 'business #', i, ' loss:', loss
+	# for i in xrange(num_mini_batches):
+	# 	train_X, train_Y = train_loader.next()
+	# 	# reshape input to be [samples, time steps, features]
+	# 	# train_X, train_Y = reshape_inputs(train_X, train_Y)
+	# 	model.fit(train_X, train_Y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=0)
+	# 	loss = model.evaluate(train_X, train_Y, verbose=0)
+	# 	print 'business #', i, ' loss:', loss
+
+	model.fit(train_X, train_Y, nb_epoch=nb_epoch, batch_size=batch_size, verbose=2)
+	loss = model.evaluate(train_X, train_Y, verbose=0)
+	print "overall loss", loss
+
 	#save model and weights
 	with open(model_structure_name, 'wb') as f:
 		f.write(model.to_json())
@@ -53,9 +61,9 @@ def evaluate_model(model = None):
 	if model is None:
 		model = load_model_from_file()
 	
-	# train_loader = data_loader.load_batch_preprocessed(mode='both', train_ratio=0.80, choice='sequential')
-	train_loader = data_loader.load_batch_same_len(batch_size=32, choice='sequential', min_months=12)
-	test_loader = data_loader.load_batch_preprocessed(mode = 'test', train_ratio=0.80, choice='sequential', min_months=12)
+	# train_loader = data_loader.load_sample_preprocessed(mode='both', train_ratio=0.80, choice='sequential')
+	train_loader = data_loader.load_batch_same_len(batch_size=32, choice='sequential', min_months=min_months)
+	test_loader = data_loader.load_sample_preprocessed(mode = 'test', train_ratio=0.80, choice='sequential', min_months=min_months)
 	train_X, train_Y = train_loader.next()
 	train_X, train_Y = train_X[1], train_Y[1]
 	test_X, test_Y = test_loader.next()
@@ -65,7 +73,6 @@ def evaluate_model(model = None):
 	train_X, train_Y = reshape_inputs(train_X, train_Y)
 	test_X, test_Y = reshape_inputs(test_X, test_Y)
 
-	print test_X.shape
 	train_predict = model.predict(train_X)
 	test_predict = model.predict(test_X)
 	print "train rmse: ", math.sqrt(mean_squared_error(np.squeeze(train_Y), np.squeeze(train_predict)))  # Printing RMSE 
@@ -100,11 +107,12 @@ def load_model_from_file():
 if __name__ == '__main__':
 	start = datetime.now()
 
-	model_structure_name = 'lstm_structure_test.json'
-	model_weights_name = 'lstm_weights_test'
-	
-	# main()
-	evaluate_model()
+	model_structure_name = 'lstm_structure_3.json'
+	model_weights_name = 'lstm_weights_3'
+	min_months = 24
+
+	main()
+	# evaluate_model()
 
  	end = datetime.now()
 	print "this took: ", end - start
