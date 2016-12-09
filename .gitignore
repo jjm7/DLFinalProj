@@ -1,0 +1,9 @@
+data_1
+yelp_dataset_challenge_academic_dataset
+yelp_dataset_challenge_academic_dataset.tar
+yelp.db
+pics
+lstm_weights_*
+lstm_structure_*
+*.pyc
+.DS_Store
