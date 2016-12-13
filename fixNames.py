@@ -24,7 +24,7 @@ def vectorizeList(listMe):
 		# print wordList[i]
 		
 		try:
-			temp = model.word_vectors[model.dictionary[wordList[i]]]
+			temp = model.word_vectors[model.dictionary[wordList[i].lower()]]
 		#	break
 		except:
 			print('EXCEPTION ' + wordList[i] + ' not in Glove dictionary')
