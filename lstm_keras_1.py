@@ -118,6 +118,7 @@ def find_top_n_examples(num, model = None, mode='test'):
 			rmse = results['train']
 		all_rmse.append((rmse, business_id))
 		i+=1
+	# write test rmse right here. just take average  of all_rmse
 	print heapq.nlargest(num, all_rmse, key = lambda x: x[0])
 	print heapq.nsmallest(num, all_rmse, key = lambda x: x[0])
 
