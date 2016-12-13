@@ -3,6 +3,8 @@ import dataset
 from datetime import datetime
 import collections
 import numpy as np
+from fixNames import vectorizeList
+import random
 
 def write_features_to_csv():
 	data_dir = 'data_1/'
@@ -13,6 +15,9 @@ def write_features_to_csv():
 		#TODO: get categories, and feed into create_features
 		business_ids.append(row['business_id'])
 		features, labels = create_features_for_business(row)
+		print features.shape, labels.shape
+		print features
+		break
 		if len(features)<2:
 			continue
 		np.save(data_dir + row['business_id'] + '_features', np.array(features))
@@ -32,11 +37,21 @@ def get_valid_businesses():
         """)
 	return result
 
+def get_business_categories(business_id):
+	result = db.query("""
+        SELECT * 
+        FROM business_categories 
+        WHERE business_id='%s'
+        """%business_id)
+	return [row['category'] for row in result]
 
 def write_cols():
 	with open('columns.csv', 'wb') as csv_file:
+		#static feature names
 		cols = ['latitude', 'longitude', 'price_range']
 		cols.extend(['one_hot_'+state for state in all_states.keys()])
+		cols.extend(['categories_vec_'+str(i) for i in xrange(1,26)])
+		#dynamic feature names
 		cols.extend(['month', 'months_since_first_review', 'review_count', 'total_review_count', 'avg_stars_for_month', 'cum_rating', \
 				'votes_funny', 'votes_cool', 'votes_useful', 'tip_count', 'total_tip_count'])
 		#TODO: add city glove vec and categories glove vec
@@ -49,7 +64,7 @@ def create_features_for_business(business_row):
 	#create static features
 	static_features = [business_row['latitude'],business_row['longitude'],business_row['price_range']]
 	static_features.extend(state_to_one_hot(business_row['state']))
-	#TODO: turn categories and city into glove features
+	static_features.extend( vectorizeList(get_business_categories(business_id)) )
 	#create dynamic features
 	dynamic_features_results = db.query(dynamic_features_sql%business_id)
 	feature_adder = Dynmamic_Features()
