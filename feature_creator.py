@@ -15,13 +15,14 @@ def write_features_to_csv():
 		#TODO: get categories, and feed into create_features
 		business_ids.append(row['business_id'])
 		features, labels = create_features_for_business(row)
-		print features.shape, label.shape
+		print len(features), len(labels)
 		print features
 		break
-		if len(features)<2:
-			continue
-		np.save(data_dir + row['business_id'] + '_features', np.array(features))
-		np.save(data_dir + row['business_id'] + '_labels', np.array(labels))
+		# if len(features)<2:
+		# 	continue
+		# np.save(data_dir + row['business_id'] + '_features', np.array(features))
+		# np.save(data_dir + row['business_id'] + '_labels', np.array(labels))
+		np.save(data_dir + row['business_id'] + '_catvec', np.array(features))
 		if j%1000==0:
 			print j
 		j+=1
@@ -64,6 +65,7 @@ def create_features_for_business(business_row):
 	static_features = [business_row['latitude'],business_row['longitude'],business_row['price_range']]
 	static_features.extend(state_to_one_hot(business_row['state']))
 	static_features.extend( vectorizeList(get_business_categories(business_id)) ) #uncomment
+	return vectorizeList(get_business_categories(business_id)), []
 	#create dynamic features
 	dynamic_features_results = db.query(dynamic_features_sql%business_id)
 	feature_adder = Dynmamic_Features()
