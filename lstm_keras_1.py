@@ -157,9 +157,9 @@ if __name__ == '__main__':
 	min_months = 24
 	train_ratio = 0.8
 
-	# main()
+	main()
 	# find_top_n_examples(6, model = None, mode='test')
-	evaluate_example('2lF_8RZRBd9STfk_QwAtmg')
+	# evaluate_example('2lF_8RZRBd9STfk_QwAtmg')
 
  	end = datetime.now()
 	print "this took: ", end - start
