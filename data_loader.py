@@ -6,10 +6,11 @@ from sklearn.preprocessing import StandardScaler
 from datetime import datetime
 
 
-def load_sample_preprocessed(mode = 'train', train_ratio=0.80, choice='random', min_months=6):
+def load_sample_preprocessed(mode = 'train', train_ratio=0.80, choice='random', min_months=6, business_id_list=None):
 	"""Generator to load train or test features for a business. Preprocesses data by imputing and scaling"""
 	data_dir = 'data_1/'
-	business_id_list = np.load('business_list.npy')
+	if business_id_list is None:
+		business_id_list = np.load('business_list.npy')
 	#get columns in feature mat
 	with open('columns.csv','r') as f:
 		cols = f.readline().strip().split(',')
@@ -21,11 +22,10 @@ def load_sample_preprocessed(mode = 'train', train_ratio=0.80, choice='random', 
 		features = np.load(data_dir + business_id + '_features.npy')
 		labels = np.load(data_dir + business_id + '_labels.npy')
 		#train test split
-		train_size = int(len(features) * train_ratio)
+		train_size = int(len(features) * train_ratio) #rows 0:train_size is the training set
 		if train_size < min_months: #less than n months of training data
 			continue
 		train_X, train_Y = features[:train_size, :], labels[:train_size]
-		test_X, test_Y = features[train_size:, :], labels[train_size:]
 		#impute columns with mean
 		custom_impute(train_X)
 		imputer = Imputer(strategy='mean')
@@ -40,16 +40,10 @@ def load_sample_preprocessed(mode = 'train', train_ratio=0.80, choice='random', 
 		if mode=='train':
 			yield train_X, train_Y
 		else:
-			#impute and scale test data using train imputer and scaler, yield results
-			custom_impute(test_X)
-			test_X = imputer.transform(test_X)
-			# df_test_temp = pd.DataFrame(test_X, columns=cols)
-			# df_test_temp[cols_to_scale] = scaler.transform(df_test_temp[cols_to_scale])
-			# test_X = df_test_temp.values
-			if mode=='test':
-				yield test_X, test_Y
-			if mode=='both':
-				yield train_X, train_Y, test_X, test_Y
+			#impute and scale test data using train imputer and scaler, yield full feature mat
+			custom_impute(features)
+			features = imputer.transform(features)
+			yield features, labels, train_size, business_id
 	return
 
 def get_business_id(business_id_list, choice='random'):

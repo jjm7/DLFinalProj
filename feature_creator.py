@@ -3,7 +3,7 @@ import dataset
 from datetime import datetime
 import collections
 import numpy as np
-from fixNames import vectorizeList
+from fixNames import vectorizeList #uncomment
 import random
 
 def write_features_to_csv():
@@ -15,7 +15,7 @@ def write_features_to_csv():
 		#TODO: get categories, and feed into create_features
 		business_ids.append(row['business_id'])
 		features, labels = create_features_for_business(row)
-		print features.shape, labels.shape
+		print features.shape, label.shape
 		print features
 		break
 		if len(features)<2:
@@ -54,7 +54,6 @@ def write_cols():
 		#dynamic feature names
 		cols.extend(['month', 'months_since_first_review', 'review_count', 'total_review_count', 'avg_stars_for_month', 'cum_rating', \
 				'votes_funny', 'votes_cool', 'votes_useful', 'tip_count', 'total_tip_count'])
-		#TODO: add city glove vec and categories glove vec
 
 		csv_file.write(','.join(cols)+'\n')
 
@@ -64,7 +63,7 @@ def create_features_for_business(business_row):
 	#create static features
 	static_features = [business_row['latitude'],business_row['longitude'],business_row['price_range']]
 	static_features.extend(state_to_one_hot(business_row['state']))
-	static_features.extend( vectorizeList(get_business_categories(business_id)) )
+	static_features.extend( vectorizeList(get_business_categories(business_id)) ) #uncomment
 	#create dynamic features
 	dynamic_features_results = db.query(dynamic_features_sql%business_id)
 	feature_adder = Dynmamic_Features()
@@ -166,7 +165,7 @@ if __name__ == '__main__':
 	WITH businesses AS (
 	    SELECT *
 	    FROM business_info
-	    WHERE business_id = '%s'
+	    WHERE business_id ='%s'
 	), business_review AS( --review stats per year-month
 	    SELECT businesses.business_id, year, month, COUNT() AS review_count, AVG(review.stars) AS avg_stars,
 	              SUM(votes_funny) AS votes_funny, SUM(votes_cool) AS votes_cool, SUM(votes_useful) AS votes_useful
@@ -205,7 +204,7 @@ if __name__ == '__main__':
 	ORDER BY year, month
 	"""
 
-	write_cols()
+	# write_cols()
 
 	write_features_to_csv()
 
