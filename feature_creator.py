@@ -3,7 +3,7 @@ import dataset
 from datetime import datetime
 import collections
 import numpy as np
-from fixNames import vectorizeList #uncomment
+# from fixNames import vectorizeList #uncomment
 import random
 
 def write_features_to_csv():

@@ -137,6 +137,9 @@ def evaluate_model_rmse_on_business(model, features, labels, train_size):
 def compute_rmse(predicted, labels):
 	return math.sqrt(mean_squared_error(predicted, labels))
 
+def compute_relative_error(predicted, labels):
+	return np.mean(np.abs(labels - predicted)/labels)
+
 
 def reshape_inputs(X, y):
 	return np.reshape(X, (1, X.shape[0], X.shape[1])), np.reshape(y, (1, y.shape[0], 1))
