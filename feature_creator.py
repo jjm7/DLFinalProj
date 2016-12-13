@@ -15,9 +15,6 @@ def write_features_to_csv():
 		#TODO: get categories, and feed into create_features
 		business_ids.append(row['business_id'])
 		features, labels = create_features_for_business(row)
-		print len(features), len(labels)
-		print features
-		break
 		# if len(features)<2:
 		# 	continue
 		# np.save(data_dir + row['business_id'] + '_features', np.array(features))
@@ -31,10 +28,11 @@ def write_features_to_csv():
 	return
 
 def get_valid_businesses():
+	"""with >60 reviews, 10182 businesses remain"""
 	result = db.query("""
         SELECT *
         FROM business_info 
-        WHERE review_count>30
+        WHERE review_count>60
         """)
 	return result
 
