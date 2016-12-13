@@ -12,6 +12,7 @@ def fixNames(myString):
 	temp = string.replace(temp,')','')
 	temp = string.replace(temp,'&','')
 	temp = string.replace(temp,"'s",'')
+	temp = string.replace(temp,",",'')
 	return temp
 
 def vectorizeList(listMe):
