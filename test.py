@@ -14,4 +14,5 @@ def make_cum_labels():
 			cum_labels.append(total_count)
 		np.save(data_dir + business_id + '_cum_labels', np.array(cum_labels))
 
-make_cum_labels()
+# make_cum_labels()
+model = 'asdf'

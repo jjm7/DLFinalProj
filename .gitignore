@@ -9,3 +9,4 @@ lstm_structure_*
 *.pyc
 .DS_Store
 glove.*
+logs
