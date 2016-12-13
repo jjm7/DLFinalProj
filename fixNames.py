@@ -7,9 +7,11 @@ model = Glove.Glove.load_stanford(model_name)
 
 def fixNames(myString):
 	temp = string.replace(myString,'_',' ')
+	temp = string.replace(myString,'/',' ')
 	temp = string.replace(temp,'(','')
 	temp = string.replace(temp,')','')
 	temp = string.replace(temp,'&','')
+	temp = string.replace(temp,"'s",'')
 	return temp
 
 def vectorizeList(listMe):
@@ -27,7 +29,7 @@ def vectorizeList(listMe):
 			temp = model.word_vectors[model.dictionary[wordList[i].lower()]]
 		#	break
 		except:
-			print('EXCEPTION ' + wordList[i] + ' not in Glove dictionary')
+			print('EXCEPTION ' + wordList[i].lower() + ' not in Glove dictionary')
 			temp = np.zeros(model.no_components)
 		vec = vec + temp
 
