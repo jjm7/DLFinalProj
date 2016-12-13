@@ -7,7 +7,7 @@ model = Glove.Glove.load_stanford(model_name)
 
 def fixNames(myString):
 	temp = string.replace(myString,'_',' ')
-	temp = string.replace(myString,'/',' ')
+	temp = string.replace(temp,'/',' ')
 	temp = string.replace(temp,'(','')
 	temp = string.replace(temp,')','')
 	temp = string.replace(temp,'&','')
