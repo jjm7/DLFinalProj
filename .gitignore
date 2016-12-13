@@ -10,3 +10,4 @@ lstm_structure_*
 .DS_Store
 glove.*
 logs
+glove_vecs
