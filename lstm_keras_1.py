@@ -131,6 +131,7 @@ def evaluate_model_rmse_on_business(model, features, labels, train_size):
 	predicted = np.squeeze(model.predict(all_X))
 	train_rmse = compute_rmse(predicted[:min_months], labels[:min_months])
 	test_rmse = compute_rmse(predicted[min_months:], labels[min_months:])
+	#can compute relative error here too
 	return {'train_rmse':train_rmse, 'test_rmse':test_rmse, 'predicted':predicted, 'features':features, 'labels':labels}
 
 
