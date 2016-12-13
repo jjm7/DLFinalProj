@@ -14,7 +14,7 @@ def main(load_model=False):
 	#set parameters
 	num_units = 200
 	num_mini_batches = 100
-	nb_epoch = 1
+	nb_epoch = 100
 	batch_size = 32
 	activation_hist_freq = int(nb_epoch/10)
 

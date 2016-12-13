@@ -12,18 +12,16 @@ def write_features_to_csv():
 	business_ids = [] # to hold list of business_ids
 	j=1
 	for row in businesses:
-		#TODO: get categories, and feed into create_features
 		business_ids.append(row['business_id'])
 		features, labels = create_features_for_business(row)
-		# if len(features)<2:
-		# 	continue
-		# np.save(data_dir + row['business_id'] + '_features', np.array(features))
-		# np.save(data_dir + row['business_id'] + '_labels', np.array(labels))
-		np.save(data_dir + row['business_id'] + '_catvec', np.array(features))
+		if len(features)<2:
+			continue
+		np.save(data_dir + row['business_id'] + '_features', np.array(features))
+		np.save(data_dir + row['business_id'] + '_labels', np.array(labels))
 		if j%1000==0:
 			print j
 		j+=1
-	#save list of business_ids
+	# save list of business_ids
 	np.save('business_list', np.array(business_ids))
 	return
 
@@ -49,11 +47,11 @@ def write_cols():
 		#static feature names
 		cols = ['latitude', 'longitude', 'price_range']
 		cols.extend(['one_hot_'+state for state in all_states.keys()])
-		cols.extend(['categories_vec_'+str(i) for i in xrange(1,26)])
 		#dynamic feature names
 		cols.extend(['month', 'months_since_first_review', 'review_count', 'total_review_count', 'avg_stars_for_month', 'cum_rating', \
 				'votes_funny', 'votes_cool', 'votes_useful', 'tip_count', 'total_tip_count'])
-
+		#category glove vecs
+		cols.extend(['categories_vec_'+str(i) for i in xrange(1,26)])
 		csv_file.write(','.join(cols)+'\n')
 
 
@@ -63,7 +61,6 @@ def create_features_for_business(business_row):
 	static_features = [business_row['latitude'],business_row['longitude'],business_row['price_range']]
 	static_features.extend(state_to_one_hot(business_row['state']))
 	static_features.extend( vectorizeList(get_business_categories(business_id)) ) #uncomment
-	return vectorizeList(get_business_categories(business_id)), []
 	#create dynamic features
 	dynamic_features_results = db.query(dynamic_features_sql%business_id)
 	feature_adder = Dynmamic_Features()
@@ -204,9 +201,9 @@ if __name__ == '__main__':
 	ORDER BY year, month
 	"""
 
-	# write_cols()
+	write_cols()
 
-	write_features_to_csv()
+	# write_features_to_csv()
 
 	end = datetime.now()
 	print "this took: ", end - start
