@@ -9,6 +9,9 @@ from datetime import datetime
 import data_loader
 import heapq
 import dataset
+from collections import defaultdict
+import dataset
+import cPickle as pickle
 
 def main(load_model=False):
 	#set parameters
@@ -108,6 +111,7 @@ def find_top_n_examples(num, model = None, mode='test'):
 	train_loader = data_loader.load_sample_preprocessed(mode='test', train_ratio=train_ratio, choice='sequential', min_months=min_months)
 	all_rmse = []
 	all_relative_err = []
+	cat_errors = Category_Errors()
 	i = 1
 	for features, labels, train_size, business_id in train_loader:
 		#start from min_months before train_size, since that's when training started
@@ -116,17 +120,48 @@ def find_top_n_examples(num, model = None, mode='test'):
 		if mode=='test':
 			rmse = results['test_rmse']
 			relative_err = results['test_relative_err']
+			cat_errors.add_cat_error(business_id, rmse, relative_err)
 		elif mode=='train':
 			rmse = results['train']
 		all_rmse.append((rmse, business_id))
-		all_relative_err.append((relative,business_id))
+		all_relative_err.append((relative_err, business_id))
+		if i%1000==0:
+			print i
 		i+=1
 	# write test rmse right here. just take average  of all_rmse
-	print mode + ' rmse for all buzi', sum(all_rmse)/float(len(all_rmse))
-	print mode + ' relative error for all business', sum(all_relative_err)/float(len(all_relative_err))
+	rmse_vals, _ = zip(*all_rmse) #unzip list of tuples to get list of rmse values only
+	print mode + ' rmse for all buzi', sum(rmse_vals)/float(len(rmse_vals))
+	rel_err_vals, _ = zip(*all_relative_err)
+	print mode + ' relative error for all business', np.nanmean(rel_err_vals)
 	print heapq.nlargest(num, all_rmse, key = lambda x: x[0])
 	print heapq.nsmallest(num, all_rmse, key = lambda x: x[0])
+	#save dictionary of category errors
+	cat_errors.save_category_errors_dict('business_category')
 
+class Category_Errors():
+	def __init__(self):
+		self.category_rmse = defaultdict(list)
+		self.category_rel_err = defaultdict(list)
+
+	def add_cat_error(self, business_id, rmse, relative_err):
+		cats = self.get_business_categories(business_id)
+		for category in cats:
+			self.category_rmse[category].append(rmse)
+			self.category_rel_err[category].append(relative_err)
+
+	def save_category_errors_dict(self, file_name):
+		with open(file_name+"_rmse", "wb") as f:
+			pickle.dump(self.category_rmse, f)
+		with open(file_name+"_rel_err", "wb") as f:
+			pickle.dump(self.category_rel_err, f)
+
+	def get_business_categories(self, business_id):
+		result = db.query("""
+		    SELECT * 
+		    FROM business_categories 
+		    WHERE business_id='%s'
+		    """%business_id)
+		return [row['category'] for row in result]
 
 def evaluate_model_rmse_on_business(model, features, labels, train_size):
 	"""Evaluate a model's performance on a business given its features, labels, and training set size
@@ -146,6 +181,7 @@ def compute_rmse(predicted, labels):
 	return math.sqrt(mean_squared_error(predicted, labels))
 
 def compute_relative_error(predicted, labels):
+	labels= [x if x != 0  else 0.1 for x in labels]
 	return np.mean(np.abs(labels - predicted)/labels)
 
 
@@ -153,7 +189,7 @@ def reshape_inputs(X, y):
 	return np.reshape(X, (1, X.shape[0], X.shape[1])), np.reshape(y, (1, y.shape[0], 1))
 
 
-def load_model_from_file(model_structure_name,model_weights_name):
+def load_model_from_file():
 	with open(model_structure_name, 'rb') as f:
 		json_string = f.readline()
 	model = model_from_json(json_string)
@@ -163,14 +199,15 @@ def load_model_from_file(model_structure_name,model_weights_name):
 if __name__ == '__main__':
 	start = datetime.now()
 
-	model_structure_name = 'lstm_structure_3.json'
-	model_weights_name = 'lstm_weights_3'
+	model_structure_name = 'lstm_2l_200hu_LSTM_24month_pt8Train_MAEloss_100epoch.json'
+	model_weights_name = 'lstm_weights_2l_200hu_LSTM_24month_pt8Train_MAEloss_100epoch'
 	min_months = 24
 	train_ratio = 0.8
+	db = dataset.connect('sqlite:///yelp.db')
 
-	main()
+	# main()
 	# find_top_n_examples(6, model = None, mode='test')
-	# evaluate_example('2lF_8RZRBd9STfk_QwAtmg')
+	evaluate_example('sIyHTizqAiGu12XMLX3N3g')
 
  	end = datetime.now()
 	print "this took: ", end - start
