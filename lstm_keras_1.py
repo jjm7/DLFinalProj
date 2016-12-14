@@ -14,7 +14,7 @@ def main(load_model=False):
 	#set parameters
 	num_units = 200
 	num_mini_batches = 100
-	nb_epoch = 100
+	nb_epoch = 10
 	batch_size = 32
 	activation_hist_freq = int(nb_epoch/10)
 
@@ -107,6 +107,7 @@ def find_top_n_examples(num, model = None, mode='test'):
 		model = load_model_from_file()
 	train_loader = data_loader.load_sample_preprocessed(mode='test', train_ratio=train_ratio, choice='sequential', min_months=min_months)
 	all_rmse = []
+	all_relative_err = []
 	i = 1
 	for features, labels, train_size, business_id in train_loader:
 		#start from min_months before train_size, since that's when training started
@@ -114,11 +115,15 @@ def find_top_n_examples(num, model = None, mode='test'):
 		#do we want top/bottom test or train rmse
 		if mode=='test':
 			rmse = results['test_rmse']
+			relative_err = results['test_relative_err']
 		elif mode=='train':
 			rmse = results['train']
 		all_rmse.append((rmse, business_id))
+		all_relative_err.append((relative,business_id))
 		i+=1
 	# write test rmse right here. just take average  of all_rmse
+	print mode + ' rmse for all buzi', sum(all_rmse)/float(len(all_rmse))
+	print mode + ' relative error for all business', sum(all_relative_err)/float(len(all_relative_err))
 	print heapq.nlargest(num, all_rmse, key = lambda x: x[0])
 	print heapq.nsmallest(num, all_rmse, key = lambda x: x[0])
 
@@ -132,8 +137,9 @@ def evaluate_model_rmse_on_business(model, features, labels, train_size):
 	predicted = np.squeeze(model.predict(all_X))
 	train_rmse = compute_rmse(predicted[:min_months], labels[:min_months])
 	test_rmse = compute_rmse(predicted[min_months:], labels[min_months:])
+	test_relative_err = compute_relative_error(predicted[min_months:], labels[min_months:])
 	#can compute relative error here too
-	return {'train_rmse':train_rmse, 'test_rmse':test_rmse, 'predicted':predicted, 'features':features, 'labels':labels}
+	return {'train_rmse':train_rmse, 'test_rmse':test_rmse, 'predicted':predicted,'test_relative_err':test_relative_err ,'features':features, 'labels':labels}
 
 
 def compute_rmse(predicted, labels):
@@ -147,7 +153,7 @@ def reshape_inputs(X, y):
 	return np.reshape(X, (1, X.shape[0], X.shape[1])), np.reshape(y, (1, y.shape[0], 1))
 
 
-def load_model_from_file():
+def load_model_from_file(model_structure_name,model_weights_name):
 	with open(model_structure_name, 'rb') as f:
 		json_string = f.readline()
 	model = model_from_json(json_string)
