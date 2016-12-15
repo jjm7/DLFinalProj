@@ -40,7 +40,7 @@ def MASE(training_series, testing_series, prediction_series):
 
 def main(load_model=False):
         #set parameters
-        num_units = 100
+        num_units = 200
         num_mini_batches = 100
         nb_epoch = 100
         batch_size = 32
@@ -62,9 +62,10 @@ def main(load_model=False):
                 model = Sequential()
                 model.add(LSTM(num_units, input_dim=input_dim, return_sequences=True))
                 model.add(LSTM(num_units, return_sequences=True))
-                model.add(TimeDistributed(Dense(1))) #with no activation specified, linear is implied
-                #model.compile(loss='mean_squared_error', optimizer='adam')
-		model.compile(loss='mean_absolute_error', optimizer='adam')
+                model.add(LSTM(num_units, return_sequences=True))
+		model.add(TimeDistributed(Dense(1))) #with no activation specified, linear is implied
+                model.compile(loss='mean_squared_error', optimizer='sgd')
+		#model.compile(loss='mean_absolute_error', optimizer='adam')
         #print model structure and # of weights
         model.summary()
         #add callbacks. One for tensorboard visualization. Should be able to visualize activation histograms over time
@@ -205,7 +206,7 @@ def load_model_from_file(model_structure_name,model_weights_name):
         return model
 
 if __name__ == '__main__':
-	model_name = '2l_100hu_LSTM_24month_pt8Train_MAEloss_100epoch'
+	model_name = '2l_200hu_LSTM_24month_pt8Train_MSEloss_100epochSGD'
 	
 	start = datetime.now()
 	#model_name = ''
